@@ -25,9 +25,7 @@ const Login = () => {
     e.preventDefault();
     try {
       await dispatch(login(formData)).unwrap();
-      // Redirect to the page user tried to visit or home
-      const from = location.state?.from?.pathname || '/';
-      navigate(from, { replace: true });
+      window.location.href = '/'; // This will refresh and redirect to homepage
     } catch (error) {
       console.error('Login failed:', error);
     }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProducts, createProduct, updateProduct, deleteProduct } from '../store/slices/productSlice';
+import { updateArtisanProfile } from '../store/slices/artisanSlice';
 import { authService } from '../services/authService';
 import { Link } from 'react-router-dom';
 
@@ -127,7 +128,36 @@ const ArtisanDashboard = () => {
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
-    // Implement profile update logic
+    const formData = {
+      name: e.target.name.value.trim(),
+      email: e.target.email.value.trim(),
+      bio: e.target.bio.value.trim(),
+      location: e.target.location.value.trim(),
+      specialties: e.target.specialties.value.trim(),
+      experience: e.target.experience.value.trim(),
+    };
+
+    // Basic validation
+    if (!formData.name || !formData.email || !formData.bio) {
+      alert('Please fill in all required fields (Name, Email, and Bio)');
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    try {
+      await dispatch(updateArtisanProfile({ id: user.id, profileData: formData })).unwrap();
+      alert('Profile updated successfully!');
+      window.location.href = '/'; // This will refresh and redirect to homepage
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert(error.message || 'Error updating profile. Please try again.');
+    }
   };
 
   if (loading) {
@@ -366,30 +396,65 @@ const ArtisanDashboard = () => {
               <label className="block text-sm font-medium text-gray-700">Name</label>
               <input
                 type="text"
+                name="name"
                 defaultValue={user?.name}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Email</label>
               <input
                 type="email"
+                name="email"
                 defaultValue={user?.email}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Bio</label>
               <textarea
+                name="bio"
                 defaultValue={user?.bio}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 rows="4"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Location</label>
+              <input
+                type="text"
+                name="location"
+                defaultValue={user?.location}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Specialties</label>
+              <input
+                type="text"
+                name="specialties"
+                defaultValue={user?.specialties}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                placeholder="e.g., Wood carving, Pottery, Weaving"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Experience</label>
+              <textarea
+                name="experience"
+                defaultValue={user?.experience}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                rows="3"
+                placeholder="Describe your experience and background"
               />
             </div>
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600"
+                className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 Update Profile
               </button>
