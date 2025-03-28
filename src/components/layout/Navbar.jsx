@@ -76,7 +76,7 @@ const Navbar = () => {
                   {user?.name}
                 </span>
                 {user?.role === 'artisan' && (
-                  <Link to={`/artisan/${user._id}`} className="text-gray-900 hover:text-primary-600 text-sm font-medium">
+                  <Link to={`/artisan/${user.id}`} className="text-gray-900 hover:text-primary-600 text-sm font-medium">
                     My Profile
                   </Link>
                 )}
@@ -187,7 +187,7 @@ const Navbar = () => {
           
           {isAuthenticated && user?.role === 'artisan' && (
             <Link
-              to={`/artisan/${user._id}`}
+              to={`/artisan/${user.id}`}
               onClick={() => setIsMobileMenuOpen(false)}
               className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300"
             >
