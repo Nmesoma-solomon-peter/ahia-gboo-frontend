@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { productService } from '../services/productService';
+import { artisanService } from '../services/artisanService';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
+  const [artisans, setArtisans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const data = await productService.getAllProducts();
-        setProducts(data);
+        const [productsData, artisansData] = await Promise.all([
+          productService.getAllProducts(),
+          artisanService.getAllArtisans()
+        ]);
+        setProducts(productsData);
+        setArtisans(artisansData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -19,7 +25,7 @@ const Home = () => {
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
   return (
@@ -93,9 +99,59 @@ const Home = () => {
       <div className="bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-3xl font-extrabold text-gray-900">Featured Artisans</h2>
-          <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
-            {/* Add artisan cards here */}
-          </div>
+          {loading ? (
+            <div className="mt-6 text-center">Loading artisans...</div>
+          ) : error ? (
+            <div className="mt-6 text-center text-red-600">Error: {error}</div>
+          ) : (
+            <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
+              {artisans.slice(0, 6).map((artisan) => (
+                <div key={artisan.id} className="bg-white rounded-lg shadow overflow-hidden">
+                  <div className="relative h-48">
+                    <img
+                      src={artisan.imageUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(artisan.name)}
+                      alt={artisan.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(artisan.name);
+                      }}
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-lg font-medium text-gray-900">
+                      <Link to={`/artisan/${artisan.id}`} className="hover:text-primary-600">
+                        {artisan.name}
+                      </Link>
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500 line-clamp-2">{artisan.bio || 'No bio available'}</p>
+                    <div className="mt-4">
+                      <div className="flex flex-wrap gap-2">
+                        {Array.isArray(artisan.specialties) 
+                          ? artisan.specialties.slice(0, 3).map((specialty, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
+                              >
+                                {specialty}
+                              </span>
+                            ))
+                          : (artisan.specialties || '').split(',').slice(0, 3).map((specialty, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
+                              >
+                                {specialty.trim()}
+                              </span>
+                            ))
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
