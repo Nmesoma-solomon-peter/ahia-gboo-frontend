@@ -22,6 +22,9 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else {
+    // If no token, redirect to login
+    window.location.href = '/login';
   }
   return config;
 }, (error) => {
@@ -44,10 +47,11 @@ const transformResponse = (data) => {
 // Add response interceptor to handle token expiration
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 403) {
       // Token is invalid or expired
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.location.href = '/login';
     }
     return Promise.reject(error);
@@ -102,6 +106,7 @@ export const artisanService = {
       console.log('Updating artisan profile:', { id, data });
       const token = localStorage.getItem('token');
       if (!token) {
+        window.location.href = '/login';
         throw new Error('No authentication token found');
       }
       const response = await api.put(`/artisans/${id}`, data);
@@ -109,6 +114,9 @@ export const artisanService = {
       return response.data;
     } catch (error) {
       console.error('Error updating artisan profile:', error.response?.data || error);
+      if (error.response?.status === 403) {
+        window.location.href = '/login';
+      }
       throw error.response?.data || error;
     }
   },

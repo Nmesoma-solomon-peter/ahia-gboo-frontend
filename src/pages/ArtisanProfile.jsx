@@ -62,15 +62,13 @@ const ArtisanProfile = () => {
           <div className="relative h-48 bg-gradient-to-r from-primary-500 to-primary-600">
             <div className="absolute -bottom-16 left-8">
               <div className="relative">
-                <img
-                  src={currentArtisan.imageUrl || '/images/default-artisan.jpg'}
-                  alt={currentArtisan.name}
-                  className="w-32 h-32 rounded-full border-4 border-white object-cover"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = '/images/default-artisan.jpg';
-                  }}
-                />
+                <div className="relative w-32 h-32 mx-auto mb-6">
+                  <img
+                    src={currentArtisan.imageUrl || 'https://placehold.co/150x150'}
+                    alt={currentArtisan.name}
+                    className="w-full h-full rounded-full object-cover border-4 border-primary-500"
+                  />
+                </div>
               </div>
             </div>
           </div>
