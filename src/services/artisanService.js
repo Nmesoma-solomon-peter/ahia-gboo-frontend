@@ -24,6 +24,8 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 // Add response interceptor to handle data transformation
@@ -38,6 +40,19 @@ const transformResponse = (data) => {
     return data;
   }
 };
+
+// Add response interceptor to handle token expiration
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 403) {
+      // Token is invalid or expired
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Add response interceptor to both API instances
 api.interceptors.response.use((response) => {
@@ -82,16 +97,19 @@ export const artisanService = {
   },
 
   // Update artisan profile (protected route)
-  updateArtisanProfile: async (id, profileData) => {
+  updateArtisanProfile: async (id, data) => {
     try {
-      console.log('Updating artisan profile for ID:', id);
-      console.log('Profile data:', profileData);
-      const response = await api.put(`/artisans/${id}`, profileData);
+      console.log('Updating artisan profile:', { id, data });
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await api.put(`/artisans/${id}`, data);
       console.log('Update response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error updating artisan profile:', error.response?.data || error.message);
-      throw error.response?.data || error.message;
+      console.error('Error updating artisan profile:', error.response?.data || error);
+      throw error.response?.data || error;
     }
   },
 
