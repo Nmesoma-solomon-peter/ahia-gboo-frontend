@@ -64,9 +64,13 @@ const ArtisanProfile = () => {
               <div className="relative">
                 <div className="relative w-32 h-32 mx-auto mb-6">
                   <img
-                    src={currentArtisan.imageUrl || 'https://placehold.co/150x150'}
+                    src={currentArtisan.imageUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentArtisan.name)}
                     alt={currentArtisan.name}
                     className="w-full h-full rounded-full object-cover border-4 border-primary-500"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentArtisan.name);
+                    }}
                   />
                 </div>
               </div>
@@ -111,12 +115,12 @@ const ArtisanProfile = () => {
                 {artisanProducts.slice(0, 4).map((product) => (
                   <div key={product.id} className="bg-gray-50 rounded-lg overflow-hidden">
                     <img
-                      src={product.imageUrl}
+                      src={product.imageUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(product.name)}
                       alt={product.name}
                       className="w-full h-48 object-cover"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = '/images/default-product.jpg';
+                        e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(product.name);
                       }}
                     />
                     <div className="p-4">
