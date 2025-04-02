@@ -17,9 +17,12 @@ export const fetchArtisanById = createAsyncThunk(
   'artisans/fetchArtisanById',
   async (id, { rejectWithValue }) => {
     try {
+      console.log('Fetching artisan with ID:', id);
       const response = await artisanService.getArtisanById(id);
+      console.log('Fetched artisan data:', response);
       return response;
     } catch (error) {
+      console.error('Error fetching artisan:', error);
       return rejectWithValue(error.message);
     }
   }
@@ -118,6 +121,7 @@ const artisanSlice = createSlice({
       .addCase(fetchArtisanById.fulfilled, (state, action) => {
         state.loading = false;
         state.currentArtisan = action.payload;
+        console.log('Updated currentArtisan in state:', action.payload);
       })
       .addCase(fetchArtisanById.rejected, (state, action) => {
         state.loading = false;
@@ -137,6 +141,7 @@ const artisanSlice = createSlice({
         if (state.currentArtisan?.id === action.payload.id) {
           state.currentArtisan = action.payload;
         }
+        console.log('Updated artisan in state:', action.payload);
       })
       .addCase(updateArtisanProfile.rejected, (state, action) => {
         state.loading = false;

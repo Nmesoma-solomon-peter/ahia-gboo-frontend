@@ -8,16 +8,26 @@ const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { selectedProduct: product, loading, error } = useSelector((state) => state.products);
+  const { currentProduct: product, loading, error } = useSelector((state) => state.products);
   const { user } = useSelector((state) => state.auth);
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   useEffect(() => {
     if (id) {
+      console.log('Fetching product with ID:', id);
       dispatch(fetchProductById(id));
     }
   }, [dispatch, id]);
+
+  useEffect(() => {
+    if (error) {
+      console.error('Error fetching product:', error);
+    }
+    if (product) {
+      console.log('Product loaded:', product);
+    }
+  }, [error, product]);
 
   const handleAddToCart = async () => {
     if (!user) {
@@ -37,6 +47,7 @@ const ProductDetail = () => {
       alert('Product added to cart successfully!');
       navigate('/cart');
     } catch (error) {
+      console.error('Error adding to cart:', error);
       alert('Failed to add product to cart. Please try again.');
     } finally {
       setIsAddingToCart(false);
@@ -56,7 +67,7 @@ const ProductDetail = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-4">
-            Product not found
+            {error || 'Product not found'}
           </h2>
           <button
             onClick={() => navigate('/')}
@@ -111,48 +122,47 @@ const ProductDetail = () => {
 
             {product.materials && (
               <div>
-                <h2 className="text-lg font-medium text-gray-900">Materials Used</h2>
+                <h2 className="text-lg font-medium text-gray-900">Materials</h2>
                 <p className="mt-2 text-gray-600">{product.materials}</p>
               </div>
             )}
-
-            <div>
-              <h2 className="text-lg font-medium text-gray-900">Category</h2>
-              <p className="mt-2 text-gray-600 capitalize">{product.category}</p>
-            </div>
 
             <div>
               <h2 className="text-lg font-medium text-gray-900">Stock</h2>
               <p className="mt-2 text-gray-600">{product.stock} available</p>
             </div>
 
-            {/* Add to Cart Section - Only show for non-owners */}
-            {!isProductOwner && (
-              <div className="pt-6 border-t">
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
-                      Quantity
-                    </label>
-                    <input
-                      type="number"
-                      id="quantity"
-                      min="1"
-                      max={product.stock}
-                      value={quantity}
-                      onChange={(e) => setQuantity(Math.min(Math.max(1, parseInt(e.target.value) || 1), product.stock))}
-                      className="mt-1 block w-24 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                    />
-                  </div>
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={isAddingToCart || product.stock === 0}
-                    className="flex-1 px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            {product.stock > 0 && user?.role !== 'artisan' && (
+              <div className="flex items-center space-x-4">
+                <div>
+                  <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
+                    Quantity
+                  </label>
+                  <select
+                    id="quantity"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
                   >
-                    {isAddingToCart ? 'Adding to Cart...' : 'Add to Cart'}
-                  </button>
+                    {[...Array(Math.min(10, product.stock))].map((_, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        {i + 1}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+                <button
+                  onClick={handleAddToCart}
+                  disabled={isAddingToCart}
+                  className="flex-1 bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+                >
+                  {isAddingToCart ? 'Adding...' : 'Add to Cart'}
+                </button>
               </div>
+            )}
+
+            {product.stock === 0 && (
+              <p className="text-red-600">This product is currently out of stock.</p>
             )}
           </div>
         </div>

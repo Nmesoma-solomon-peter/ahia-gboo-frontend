@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { clearCart } from '../store/slices/cartSlice';
+import { createOrder } from '../store/slices/orderSlice';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -28,12 +29,38 @@ const Checkout = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send the order to your backend
-    console.log('Order submitted:', { items, total, ...formData });
-    dispatch(clearCart());
-    navigate('/order-confirmation');
+    try {
+      // Format shipping address
+      const shippingAddress = `${formData.firstName} ${formData.lastName}\n${formData.address}\n${formData.city}, ${formData.country} ${formData.zipCode}`;
+
+      // Create order data
+      const orderData = {
+        items: items.map(item => ({
+          productId: item.id,
+          quantity: item.quantity,
+          price: item.price,
+          name: item.name,
+          imageUrl: item.imageUrl
+        })),
+        totalAmount: total,
+        shippingAddress,
+        paymentMethod: 'credit_card'
+      };
+
+      // Create order
+      const result = await dispatch(createOrder(orderData)).unwrap();
+      
+      // Clear cart
+      dispatch(clearCart());
+      
+      // Navigate to order confirmation with order ID
+      navigate('/order-confirmation', { state: { orderId: result.id } });
+    } catch (error) {
+      console.error('Error creating order:', error);
+      alert('Failed to create order. Please try again.');
+    }
   };
 
   if (items.length === 0) {
@@ -89,7 +116,7 @@ const Checkout = () => {
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
               </label>
@@ -103,7 +130,7 @@ const Checkout = () => {
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <label htmlFor="address" className="block text-sm font-medium text-gray-700">
                 Address
               </label>
@@ -147,7 +174,7 @@ const Checkout = () => {
             </div>
             <div>
               <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
-                ZIP / Postal code
+                ZIP code
               </label>
               <input
                 type="text"
@@ -166,7 +193,7 @@ const Checkout = () => {
         <div>
           <h3 className="text-lg font-medium text-gray-900">Payment Information</h3>
           <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
+            <div>
               <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700">
                 Card number
               </label>
@@ -217,7 +244,7 @@ const Checkout = () => {
           <h3 className="text-lg font-medium text-gray-900">Order Summary</h3>
           <div className="mt-6">
             <div className="flow-root">
-              <ul role="list" className="-my-6 divide-y divide-gray-200">
+              <ul className="-my-6 divide-y divide-gray-200">
                 {items.map((item) => (
                   <li key={item.id} className="py-6 flex">
                     <div className="flex-shrink-0 w-24 h-24 border border-gray-200 rounded-md overflow-hidden">
